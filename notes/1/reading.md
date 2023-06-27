@@ -1,5 +1,16 @@
 # Futher Reading
 
+## Optional Homework
+
+- [_Why Apache Kafka Doesn't Need Fsync To Be Safe_ by Jack Vanlightly](https://jack-vanlightly.com/blog/2023/4/24/why-apache-kafka-doesnt-need-fsync-to-be-safe)
+
+  - [_Why `fsync()`_ by
+    Denis Rystsov, Alexander Gallego (Redpanda blog)](https://redpanda.com/blog/why-fsync-is-needed-for-data-safety-in-kafka-or-non-byzantine-protocols)
+
+- [_PostgreSQL's fsync() surprise_ by Jonathan Corbet (LWN.net)](https://lwn.net/Articles/752063/)
+
+## Other
+
 - [Alex Miller's reading list](https://twitter.com/AlexMillerDB/status/1592470377284112385)
 
 - [_Distributed Consensus Reading List_ by Heidi Howard](https://github.com/heidihoward/distributed-consensus-reading-list)
@@ -41,14 +52,7 @@
     - [_MongoDB 4.2.6_ by Kyle Kingsbury (Jepsen)](https://jepsen.io/analyses/mongodb-4.2.6)
     - [_CockroachDB beta-20160829_ by Kyle Kingsbury (Jepsen)](https://jepsen.io/analyses/cockroachdb-beta-20160829)
 
-- [_Why Apache Kafka Doesn't Need Fsync To Be Safe_ by Jack Vanlightly](https://jack-vanlightly.com/blog/2023/4/24/why-apache-kafka-doesnt-need-fsync-to-be-safe)
-
-  - [_Why `fsync()`_ by
-    Denis Rystsov, Alexander Gallego (Redpanda blog)](https://redpanda.com/blog/why-fsync-is-needed-for-data-safety-in-kafka-or-non-byzantine-protocols)
-
 - [_Files are fraught with peril_ by Dan Luu](https://danluu.com/deconstruct-files/)
-
-- [_PostgreSQL's fsync() surprise_ by Jonathan Corbet (LWN.net)](https://lwn.net/Articles/752063/)
 
 - [_Raft does not Guarantee Liveness in the face of Network Faults_ by Heidi Howard, Ittai Abraham (Decentralized Thoughts)](https://decentralizedthoughts.github.io/2020-12-12-raft-liveness-full-omission/)
 

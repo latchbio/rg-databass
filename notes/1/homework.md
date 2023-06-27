@@ -4,6 +4,7 @@
 
 1. Read Chapter 2
 1. Implement a basic B-Tree in a language of your choice
+1. Optional: [select readings](./reading.md)
 
 ## Testing Harness
 
