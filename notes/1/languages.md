@@ -12,6 +12,8 @@
 1. [Zig](https://ziglang.org/)
 1. [Haskell](https://www.haskell.org/)
 1. [Racket](https://racket-lang.org/)
+1. [Scala](https://www.scala-lang.org/) or [C#](https://dotnet.microsoft.com/en-us/) or [Java](https://www.java.com/en/)
+1. [Swift](https://www.swift.org/)
 1. [PureScript](https://www.purescript.org/)
 1. [Idris](https://www.idris-lang.org/)
 1. [OCaml](https://ocaml.org/)
