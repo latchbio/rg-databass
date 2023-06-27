@@ -2,6 +2,10 @@
 
 Loosely following [_Database Internals_ by Alex Petrov (O'Reilly). ISBN 978-1-492-04034-7](https://www.databass.dev/)
 
+## Meeting Nodes
+
+- [Day 1](./notes/1/index.md)
+
 ## Copying/License
 
 This software and text is quad-licensed and downstream users are free to use any of the provided licenses.
