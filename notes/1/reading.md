@@ -16,7 +16,17 @@
 
 - [_CockroachDB's consistency model_ by Andrei Matei (Cockroach Labs)](https://www.cockroachlabs.com/blog/consistency-model/)
 
-- [_Locks in PostgreSQL: 1. Relation-level locks_](https://habr.com/en/company/postgrespro/blog/500714/)
+- PostgreSQL Internals Series List
+
+  - [_Indexes in PostgreSQL — 1_ by Egor Rogov (Postgres Professional Blog)](https://habr.com/en/companies/postgrespro/articles/441962/)
+
+  - [_MVCC in PostgreSQL-1. Isolation_ by Egor Rogov (Postgres Professional Blog)](https://habr.com/en/companies/postgrespro/articles/467437/)
+
+  - [_WAL in PostgreSQL: 1. Buffer Cache_ by Egor Rogov (Postgres Professional Blog)](https://habr.com/en/companies/postgrespro/articles/491730/)
+
+  - [_Locks in PostgreSQL: 1. Relation-level locks_ by Egor Rogov (Postgres Professional Blog)](https://habr.com/en/company/postgrespro/blog/500714/)
+
+  - [_Queries in PostgreSQL. Query execution stages_ by Egor Rogov (Postgres Professional Blog)](https://habr.com/ru/companies/postgrespro/articles/649499/)
 
 - [Jepsen](https://jepsen.io/)
 
@@ -36,8 +46,16 @@
 
 - [_Files are fraught with peril_ by Dan Luu](https://danluu.com/deconstruct-files/)
 
+- [_PostgreSQL's fsync() surprise_ by Jonathan Corbet (LWN.net)](https://lwn.net/Articles/752063/)
+
 - [_Raft does not Guarantee Liveness in the face of Network Faults_ by Heidi Howard, Ittai Abraham (Decentralized Thoughts)](https://decentralizedthoughts.github.io/2020-12-12-raft-liveness-full-omission/)
 
 - [_Against SQL_ by Jamie Brandon (Scattered Thoughts)](https://www.scattered-thoughts.net/writing/against-sql)
 
 - [_How Materialize and other databases optimize SQL subqueries_ by Jamie Brandon (Scattered Thoughts)](https://www.scattered-thoughts.net/writing/materialize-decorrelation)
+
+- [_A Gentle(-ish) Introduction to Worst-Case Optimal Joins_ by Justin Jaffray](https://justinjaffray.com/a-gentle-ish-introduction-to-worst-case-optimal-joins/?try=2)
+
+  - [Yisu Remy Wang, Max Willsey, and Dan Suciu. 2023. Free Join: Unifying Worst-Case Optimal and Traditional Joins. _Proceedings of the ACM on Management of Data_ 1, (2023), 1–23.](https://arxiv.org/abs/2301.10841)
+
+  - [_Why (Graph) DBMSs Need New Join Algorithms: The Story of Worst-case Optimal Join Algorithms_ by Semih Salihoğlu (KùzuDB Blog)](https://kuzudb.com/blog/wcoj.html)

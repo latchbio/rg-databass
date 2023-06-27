@@ -7,7 +7,7 @@
 ### Primary Options
 
 1. [Python](https://www.python.org/)
-1. [TypeScript](https://www.typescriptlang.org/) using [NodeJS](https://nodejs.org/) or [Deno](https://deno.com/runtime)
+1. [TypeScript](https://www.typescriptlang.org/) using [Deno](https://deno.com/runtime) or [NodeJS](https://nodejs.org/)
 1. [Rust](https://www.rust-lang.org/)
 1. [Zig](https://ziglang.org/)
 1. [Haskell](https://www.haskell.org/)
