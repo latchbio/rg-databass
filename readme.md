@@ -2,7 +2,7 @@
 
 Loosely following [_Database Internals_ by Alex Petrov (O'Reilly). ISBN 978-1-492-04034-7](https://www.databass.dev/)
 
-## Meeting Nodes
+## Meeting Notes
 
 1. [Day 1](./notes/1/index.md)
 
