@@ -22,7 +22,7 @@ This software and text is quad-licensed and downstream users are free to use any
 | [Unlicense][5] | None         | :white_check_mark: Yes | OSI approved public domain dedication. **Questionable legal standing** |
 
 [1]: https://opensource.org/
-[2]: ./MIT.LICENSE
-[3]: ./BSD0.LICENSE
-[4]: ./COPYING
-[5]: ./UNLICENSE
+[2]: ./mit.license
+[3]: ./bsd0.license
+[4]: ./copying
+[5]: ./unlicense
