@@ -1,0 +1,13 @@
+- Find more readings
+  - Block size and its effect
+  - B-Tree variants
+  - What thresholds get used when merging/splitting B-Trees
+  - I/O APIs
+    - iouring
+    - mmap
+    - kqueue async I/O
+    - POSIX aio
+    - Others?
+    - Compare all to thread-based async I/O
+    - Compare async runtimes
+  - Direct I/O vs buffered I/O

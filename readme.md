@@ -4,7 +4,9 @@ Loosely following [_Database Internals_ by Alex Petrov (O'Reilly). ISBN 978-1-49
 
 ## Meeting Notes
 
+1. [Before first meeting](./notes/0/index.md)
 1. [Day 1](./notes/1/index.md)
+1. [Day 2](./notes/2/index.md)
 
 ## Copying/License
 

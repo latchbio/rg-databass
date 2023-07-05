@@ -1,0 +1,2 @@
+- Try using [Manim](https://www.manim.community/) for data structure visualizations
+- Add links to references from the book for each chapter
