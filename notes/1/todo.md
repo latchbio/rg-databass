@@ -1,3 +1,4 @@
 - B-Tree test harness
   - Write I/O spec
   - Implement
+- Add links to official book copies in addition to the PDFs

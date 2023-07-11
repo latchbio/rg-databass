@@ -1,12 +1,13 @@
 # Reading Group: Database Internals
 
-Loosely following [_Database Internals_ by Alex Petrov (O'Reilly). ISBN 978-1-492-04034-7](https://www.databass.dev/)
+Loosely following [_Database Internals_ by Alex Petrov (O'Reilly). ISBN 978-1-492-04034-7](https://www.databass.dev/) (see also: [PDF](https://github.com/G33kzD3n/Catalogue/blob/master/Database%20Internals.pdf))
 
 ## Meeting Notes
 
 1. [Before first meeting](./notes/0/index.md)
 1. [Day 1](./notes/1/index.md)
 1. [Day 2](./notes/2/index.md)
+1. [Day 3](./notes/3/index.md)
 
 ## Copying/License
 
