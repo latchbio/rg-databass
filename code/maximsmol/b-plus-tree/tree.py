@@ -28,6 +28,10 @@ class Tree(Generic[K, V]):
         self.root.keys[0] = Key(key)
         self.root.children[:2] = [lhs, rhs]
 
+    def delete(self, /, k: K) -> bool:
+        # todo(maximsmol): merge
+        return self.root.delete(k)
+
     def __iter__(self) -> Iterator[Entry[K, V]]:
         return iter(self.root)
 

@@ -1,7 +1,7 @@
 from random import randint
 
 from leaf import LeafNode, Entry, KeyEntry, NoEntry
-from hypothesis import given, note
+from hypothesis import given, note, event
 import hypothesis.strategies as st
 from hypothesis.stateful import (
     RuleBasedStateMachine,
@@ -283,6 +283,7 @@ class Stateful(RuleBasedStateMachine):
             assert rhs.fanout == lhs.fanout
             assert key in latest_values
 
+            event("Split")
             note(f"Split {lhs} < {key} <= {rhs}")
 
             idx = self._find_node_idx(key)

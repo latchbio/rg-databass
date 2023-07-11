@@ -2,7 +2,7 @@ from random import randint
 from leaf import LeafNode, Entry, NoEntry
 from internal import InternalNode, Key, NoKey
 
-from hypothesis import given, note
+from hypothesis import given, note, event
 import hypothesis.strategies as st
 from hypothesis.stateful import (
     RuleBasedStateMachine,
@@ -159,17 +159,18 @@ def test_delete():
 
     b = LeafNode(3)
     b.insert(Entry(5, "b"))
+    b.insert(Entry(6, "b"))
 
     c = LeafNode(3)
     c.insert(Entry(10, "c"))
 
     n.children = [a, b, c]
-    assert str(n) == "[[0=a - -] 5 [5=b - -] 10 [10=c - -]]"
+    assert str(n) == "[[0=a - -] 5 [5=b 6=b -] 10 [10=c - -]]"
 
     assert n.get(0) == "a"
 
     assert n.delete(5)
-    assert str(n) == "[[0=a - -] 5 [- - -] 10 [10=c - -]]"
+    assert str(n) == "[[0=a - -] 5 [6=b - -] 10 [10=c - -]]"
 
     assert not n.delete(5)
     assert not n.delete(999)
@@ -398,6 +399,7 @@ class Stateful(RuleBasedStateMachine):
             key, rhs = split_data
             assert rhs.fanout == lhs.fanout
 
+            event("Split")
             note(f"Split {lhs} < {key} <= {rhs}")
 
             idx = self._find_node_idx(key)
