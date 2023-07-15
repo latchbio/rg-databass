@@ -20,6 +20,36 @@ struct ArrayNode {
     values: NodeValue,
 }
 
+impl ArrayNode {
+    fn new() -> Self {
+        ArrayNode {
+            parent: None,
+            keys: Vec::new(),
+            values: NodeValue::Leaf(Vec::new()),
+        }
+    }
+
+    fn display(&self) {
+        let parent_string = match self.parent {
+            Some(index) => index.to_string(),
+            None => "Root".to_string(),
+        };
+
+        let type_string = match self.values {
+            NodeValue::Internal(_) => format!("Internal({})", parent_string),
+            NodeValue::Leaf(_) => format!("Leaf({})", parent_string),
+        };
+        println!("Node: {}", type_string);
+        println!("Keys: {:?}", self.keys);
+        match self.values {
+            NodeValue::Internal(ref children) => {
+                println!("Children: {:?}", children);
+            }
+            NodeValue::Leaf(ref values) => println!("Values: {:?}", values),
+        }
+    }
+}
+
 #[derive(Debug)]
 struct BPlusTree {
     root_index: usize,
@@ -30,11 +60,13 @@ impl BPlusTree {
     fn new() -> Self {
         BPlusTree {
             root_index: 0,
-            nodes: vec![ArrayNode {
-                parent: None,
-                keys: Vec::new(),
-                values: NodeValue::Leaf(Vec::new()),
-            }],
+            nodes: vec![ArrayNode::new()],
+        }
+    }
+
+    fn display(&self) {
+        for (index, node) in self.nodes.iter().enumerate() {
+            node.display();
         }
     }
 
@@ -139,7 +171,7 @@ impl BPlusTree {
         };
     }
 
-    fn insert(&mut self, key: String, value: String) {
+    fn get_node_for_key(&mut self, key: String) -> usize {
         let mut target_node = &mut self.nodes[self.root_index];
         let mut target_node_index = self.root_index;
 
@@ -170,6 +202,21 @@ impl BPlusTree {
                     target_node = &mut self.nodes[next_index];
                     target_node_index = next_index;
                 }
+                NodeValue::Leaf(ref mut children) => {
+                    // Insert into the leaf node
+                    return target_node_index;
+                }
+            }
+        }
+    }
+
+    fn insert(&mut self, key: String, value: String) {
+        let target_node_index = self.get_node_for_key(key.clone());
+        let target_node = &mut self.nodes[target_node_index];
+
+        loop {
+            match target_node.values {
+                NodeValue::Internal(_) => panic!("Search yielded internal node"),
                 NodeValue::Leaf(ref mut children) => {
                     // Insert into the leaf node
                     println!("Inserting key {} and value {}", key, value);
@@ -210,6 +257,40 @@ impl BPlusTree {
             }
         }
     }
+    fn delete(&mut self, key: String) {
+        let target_node_index = self.get_node_for_key(key.clone());
+        let target_node = &mut self.nodes[target_node_index];
+
+        loop {
+            match target_node.values {
+                NodeValue::Internal(_) => panic!("Search yielded internal node"),
+                NodeValue::Leaf(ref mut children) => {
+                    // Insert into the leaf node
+                    println!("Deleting key {}", key);
+
+                    let mut index = 0;
+
+                    for child in target_node.keys.iter() {
+                        let child = match child {
+                            Some(key) => key,
+                            None => break,
+                        };
+
+                        if *child == key {
+                            target_node.keys.remove(index);
+                            children.remove(index);
+                            break;
+                        }
+                        if *child > key {
+                            println!("Key not found");
+                            break;
+                        }
+                        index += 1;
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn main() {
@@ -224,5 +305,5 @@ fn main() {
     tree.insert("h".to_string(), "h".to_string());
     tree.insert("i".to_string(), "i".to_string());
     tree.insert("j".to_string(), "j".to_string());
-    println!("{:?}", tree);
+    tree.display();
 }
