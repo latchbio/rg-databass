@@ -2,10 +2,36 @@
 // Each holds an optional parent index
 // Each holds a vector of n keys
 // Each holds a vector of either n+1 child indicies or n values
-
 const FANOUT: usize = 3;
 const SPLIT_AFTER: usize = FANOUT;
-const MERGE_AFTER: usize = FANOUT / 2;
+const MERGE_AFTER: usize = FANOUT - 1;
+
+fn borrow_mut_nodes<'a>(
+    v: &'a mut Vec<ArrayNode>,
+    indicies: (usize, usize, usize),
+) -> (&mut ArrayNode, &mut ArrayNode, &mut ArrayNode) {
+    let mut result: (
+        Option<&mut ArrayNode>,
+        Option<&mut ArrayNode>,
+        Option<&mut ArrayNode>,
+    ) = (None, None, None);
+
+    let mut current: &mut [ArrayNode];
+    let mut rest = &mut v[..];
+    let mut index = 0;
+    while rest.len() > 0 {
+        (current, rest) = rest.split_at_mut(1);
+        if index == indicies.0 {
+            result.0 = Some(&mut current[0]);
+        } else if index == indicies.1 {
+            result.1 = Some(&mut current[0]);
+        } else if index == indicies.2 {
+            result.2 = Some(&mut current[0]);
+        }
+        index += 1;
+    }
+    (result.0.unwrap(), result.1.unwrap(), result.2.unwrap())
+}
 
 #[derive(Debug)]
 enum NodeValue {
@@ -65,7 +91,7 @@ impl BPlusTree {
     }
 
     fn display(&self) {
-        for (index, node) in self.nodes.iter().enumerate() {
+        for node in self.nodes.iter() {
             node.display();
         }
     }
@@ -171,6 +197,98 @@ impl BPlusTree {
         };
     }
 
+    fn check_merge(&mut self, index: usize) {
+        let check_node = &self.nodes[index];
+
+        match check_node.values {
+            NodeValue::Internal(ref pointers) => {
+                let mut first_pos = 0;
+                let mut second_pos = 1;
+                while second_pos < pointers.len() {
+                    if self.nodes[pointers[first_pos].unwrap()].keys.len()
+                        + self.nodes[pointers[second_pos].unwrap()].keys.len()
+                        < MERGE_AFTER
+                    {
+                        self.merge(first_pos, second_pos);
+                        return;
+                    } else {
+                        first_pos += 1;
+                        second_pos += 1;
+                    }
+                }
+            }
+            NodeValue::Leaf(ref values) => {
+                println!("Check merge called on leaf node --- noop")
+            }
+        }
+    }
+
+    fn merge(&mut self, left_node_index: usize, right_node_index: usize) {
+        if self.nodes[left_node_index].keys.len() + self.nodes[right_node_index].keys.len()
+            >= MERGE_AFTER
+        {
+            println!(
+                "Node {} has {} keys and node {} has {} keys, not splitting",
+                left_node_index,
+                self.nodes[left_node_index].keys.len(),
+                right_node_index,
+                self.nodes[right_node_index].keys.len()
+            );
+            return;
+        }
+
+        println!(
+            "Merging node {} and node {}",
+            left_node_index, right_node_index
+        );
+
+        let parent_index = self.nodes[left_node_index].parent.clone().unwrap();
+
+        let (left_node, right_node, parent_node) = borrow_mut_nodes(
+            &mut self.nodes,
+            (left_node_index, right_node_index, parent_index),
+        );
+
+        let parent_remove_separator = left_node.keys[left_node.keys.len() - 1].clone().unwrap();
+
+        let mut key_position = 0;
+        for node_key in parent_node.keys.iter() {
+            if node_key.is_none() {
+                break;
+            }
+            if node_key.clone().unwrap() >= parent_remove_separator {
+                break;
+            }
+            key_position += 1;
+        }
+        parent_node.keys.remove(key_position);
+        match parent_node.values {
+            NodeValue::Internal(ref mut pointers) => {
+                pointers.remove(key_position);
+            }
+            NodeValue::Leaf(ref mut values) => {
+                values.remove(key_position);
+            }
+        }
+
+        // move keys and values from left node to right node
+        left_node.keys.append(&mut right_node.keys);
+        match left_node.values {
+            NodeValue::Internal(ref mut pointers) => match right_node.values {
+                NodeValue::Internal(ref mut right_pointers) => {
+                    pointers.append(right_pointers);
+                }
+                NodeValue::Leaf(_) => panic!("Sibling nodes have different types"),
+            },
+            NodeValue::Leaf(ref mut values) => match right_node.values {
+                NodeValue::Leaf(ref mut right_values) => {
+                    values.append(right_values);
+                }
+                NodeValue::Internal(_) => panic!("Sibling nodes have different types"),
+            },
+        }
+    }
+
     fn get_node_for_key(&mut self, key: String) -> usize {
         let mut target_node = &mut self.nodes[self.root_index];
         let mut target_node_index = self.root_index;
@@ -214,81 +332,84 @@ impl BPlusTree {
         let target_node_index = self.get_node_for_key(key.clone());
         let target_node = &mut self.nodes[target_node_index];
 
-        loop {
-            match target_node.values {
-                NodeValue::Internal(_) => panic!("Search yielded internal node"),
-                NodeValue::Leaf(ref mut children) => {
-                    // Insert into the leaf node
-                    println!("Inserting key {} and value {}", key, value);
+        match target_node.values {
+            NodeValue::Internal(_) => panic!("Search yielded internal node"),
+            NodeValue::Leaf(ref mut children) => {
+                // Insert into the leaf node
+                println!("Inserting key {} and value {}", key, value);
 
-                    let mut index = 0;
-                    let mut found = false;
+                let mut index = 0;
+                let mut found = false;
 
-                    for child in target_node.keys.iter() {
-                        let child = match child {
-                            Some(key) => key,
-                            None => break,
-                        };
+                for child in target_node.keys.iter() {
+                    let child = match child {
+                        Some(key) => key,
+                        None => break,
+                    };
 
-                        if *child == key {
-                            found = true;
-                            break;
-                        }
-                        if *child > key {
-                            break;
-                        }
-                        index += 1;
+                    if *child == key {
+                        found = true;
+                        break;
                     }
-
-                    println!("Index: {}", index);
-
-                    if found {
-                        target_node.keys[index] = Some(key);
-                        children[index] = Some(value);
-                    } else {
-                        target_node.keys.insert(index, Some(key));
-                        children.insert(index, Some(value));
-                        if target_node.keys.len() > SPLIT_AFTER {
-                            self.split(target_node_index)
-                        }
+                    if *child > key {
+                        break;
                     }
-                    break;
+                    index += 1;
+                }
+
+                println!("Index: {}", index);
+
+                if found {
+                    target_node.keys[index] = Some(key);
+                    children[index] = Some(value);
+                } else {
+                    target_node.keys.insert(index, Some(key));
+                    children.insert(index, Some(value));
+                    if target_node.keys.len() > SPLIT_AFTER {
+                        self.split(target_node_index)
+                    }
                 }
             }
         }
     }
+
     fn delete(&mut self, key: String) {
         let target_node_index = self.get_node_for_key(key.clone());
-        let target_node = &mut self.nodes[target_node_index];
 
-        loop {
-            match target_node.values {
-                NodeValue::Internal(_) => panic!("Search yielded internal node"),
-                NodeValue::Leaf(ref mut children) => {
-                    // Insert into the leaf node
-                    println!("Deleting key {}", key);
+        let nodes = &mut self.nodes;
+        let target_node = &mut nodes[target_node_index];
 
-                    let mut index = 0;
+        match target_node.values {
+            NodeValue::Internal(_) => panic!("Search yielded internal node"),
+            NodeValue::Leaf(ref mut children) => {
+                // Insert into the leaf node
+                println!("Deleting key {}", key);
 
-                    for child in target_node.keys.iter() {
-                        let child = match child {
-                            Some(key) => key,
-                            None => break,
-                        };
+                let mut index = 0;
 
-                        if *child == key {
-                            target_node.keys.remove(index);
-                            children.remove(index);
-                            break;
-                        }
-                        if *child > key {
-                            println!("Key not found");
-                            break;
-                        }
-                        index += 1;
+                for child in target_node.keys.iter() {
+                    let child = match child {
+                        Some(key) => key,
+                        None => break,
+                    };
+
+                    if *child == key {
+                        target_node.keys.remove(index);
+                        children.remove(index);
+                        break;
                     }
+                    if *child > key {
+                        println!("Key not found");
+                        break;
+                    }
+                    index += 1;
                 }
             }
+        }
+
+        match target_node.parent {
+            Some(index) => self.check_merge(index),
+            None => {}
         }
     }
 }
@@ -305,5 +426,6 @@ fn main() {
     tree.insert("h".to_string(), "h".to_string());
     tree.insert("i".to_string(), "i".to_string());
     tree.insert("j".to_string(), "j".to_string());
+    tree.delete("a".to_string());
     tree.display();
 }
