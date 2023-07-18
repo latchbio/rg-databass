@@ -217,7 +217,7 @@ impl BPlusTree {
                     }
                 }
             }
-            NodeValue::Leaf(ref values) => {
+            NodeValue::Leaf(_) => {
                 println!("Check merge called on leaf node --- noop")
             }
         }
@@ -320,7 +320,7 @@ impl BPlusTree {
                     target_node = &mut self.nodes[next_index];
                     target_node_index = next_index;
                 }
-                NodeValue::Leaf(ref mut children) => {
+                NodeValue::Leaf(_) => {
                     // Insert into the leaf node
                     return target_node_index;
                 }
