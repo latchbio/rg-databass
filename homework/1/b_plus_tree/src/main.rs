@@ -119,16 +119,14 @@ impl BPlusTree {
         }
     }
 
-    fn split(&mut self, node_index: usize) {
-        if self.nodes[node_index].keys.len() <= SPLIT_AFTER {
-            println!(
-                "Node {} has {} keys, not splitting",
-                node_index,
-                self.nodes[node_index].keys.len()
-            );
+    fn check_split(&mut self, index: usize) {
+        if self.nodes[index].keys.len() <= SPLIT_AFTER {
             return;
         }
+        self.split(index);
+    }
 
+    fn split(&mut self, node_index: usize) {
         println!("Splitting node {}", node_index);
         println!("Original node: {:?}", self.nodes[node_index]);
 
@@ -200,7 +198,7 @@ impl BPlusTree {
                     }
                     NodeValue::Leaf(_) => panic!("Leaf node is parent"),
                 }
-                self.split(parent_index)
+                self.check_split(parent_index)
             }
             None => {
                 // create new root node
@@ -264,13 +262,6 @@ impl BPlusTree {
                 let mut first_pos = 0;
                 let mut second_pos = 1;
                 while second_pos < pointers.len() {
-                    println!(
-                        "Checking node {} and node {} for merge: size: {} size: {}",
-                        pointers[first_pos],
-                        pointers[second_pos],
-                        self.nodes[pointers[first_pos]].keys.len(),
-                        self.nodes[pointers[second_pos]].keys.len()
-                    );
                     if self.nodes[pointers[first_pos]].keys.len()
                         + self.nodes[pointers[second_pos]].keys.len()
                         <= MERGE
@@ -290,18 +281,6 @@ impl BPlusTree {
     }
 
     fn merge(&mut self, left_node_index: usize, right_node_index: usize) {
-        if self.nodes[left_node_index].keys.len() + self.nodes[right_node_index].keys.len() > MERGE
-        {
-            println!(
-                "Node {} has {} keys and node {} has {} keys, not splitting",
-                left_node_index,
-                self.nodes[left_node_index].keys.len(),
-                right_node_index,
-                self.nodes[right_node_index].keys.len()
-            );
-            return;
-        }
-
         println!(
             "Merging node {} and node {}",
             left_node_index, right_node_index
@@ -427,7 +406,7 @@ impl BPlusTree {
                     target_node.keys.insert(index, key);
                     children.insert(index, value);
                     if target_node.keys.len() > SPLIT_AFTER {
-                        self.split(target_node_index)
+                        self.check_split(target_node_index)
                     }
                 }
             }
