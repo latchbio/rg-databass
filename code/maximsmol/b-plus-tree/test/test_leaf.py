@@ -1,6 +1,6 @@
 from random import randint
 
-from leaf import LeafNode, Entry, KeyEntry, NoEntry
+from bplustree.leaf import LeafNode, Entry, KeyEntry, NoEntry
 from hypothesis import given, note, event
 import hypothesis.strategies as st
 from hypothesis.stateful import (
