@@ -1,5 +1,3 @@
-use core::panic;
-
 // Instead of tree structure, we are going to use a vector of nodes which are fixed size.
 // Each holds an optional parent index
 // Each holds a vector of n keys
