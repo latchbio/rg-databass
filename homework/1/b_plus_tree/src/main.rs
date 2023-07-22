@@ -52,8 +52,8 @@ impl ArrayNode {
     fn new() -> Self {
         ArrayNode {
             parent: None,
-            keys: Vec::new(),
-            values: NodeValue::Leaf(Vec::new()),
+            keys: Vec::with_capacity(FANOUT),
+            values: NodeValue::Leaf(Vec::with_capacity(FANOUT)),
         }
     }
 
@@ -64,8 +64,8 @@ impl ArrayNode {
         };
 
         let type_string = match self.values {
-            NodeValue::Internal(_) => format!("{}Internal({})", indent, parent_string),
-            NodeValue::Leaf(_) => format!("{}Leaf({})", indent, parent_string),
+            NodeValue::Internal(_) => format!("{}Internal(parent: {})", indent, parent_string),
+            NodeValue::Leaf(_) => format!("{}Leaf(parent: {})", indent, parent_string),
         };
         println!("{}Node: {}", indent, type_string);
         println!("{}Keys: {:?}", indent, self.keys);
@@ -96,9 +96,15 @@ impl BPlusTree {
         let mut stack = vec![self.root_index];
         let mut indent = "".to_string();
 
+        println!();
+        println!("---------------------------------------------");
+        println!("Displaying BTREE");
+        println!("---------------------------------------------");
+
         loop {
             let mut next_stack = Vec::new();
             for node_index in stack.iter() {
+                println!();
                 self.nodes[*node_index].display(&indent);
                 match self.nodes[*node_index].values {
                     NodeValue::Internal(ref pointers) => {
@@ -117,6 +123,7 @@ impl BPlusTree {
             stack = next_stack;
             indent += "  ";
         }
+        println!();
     }
 
     fn check_split(&mut self, index: usize) {
@@ -202,11 +209,21 @@ impl BPlusTree {
             }
             None => {
                 // create new root node
-                let new_root = ArrayNode {
+                let mut new_root = ArrayNode {
                     parent: None,
-                    keys: vec![promotion_key],
-                    values: NodeValue::Internal(vec![node_index, self.nodes.len() - 1]),
+                    keys: Vec::with_capacity(FANOUT),
+                    values: NodeValue::Internal(Vec::with_capacity(FANOUT + 1)),
                 };
+                new_root.keys.push(promotion_key);
+
+                match new_root.values {
+                    NodeValue::Internal(ref mut pointers) => {
+                        pointers.push(node_index);
+                        pointers.push(self.nodes.len() - 1);
+                    }
+                    NodeValue::Leaf(_) => panic!("New root is a leaf"),
+                }
+
                 self.nodes.push(new_root);
                 self.root_index = self.nodes.len() - 1;
             }
@@ -467,5 +484,8 @@ fn main() {
     tree.delete("e".to_string());
     tree.display();
     tree.delete("f".to_string());
+    tree.display();
+    tree.insert("k".to_string(), "k".to_string());
+    tree.insert("l".to_string(), "l".to_string());
     tree.display();
 }
