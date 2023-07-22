@@ -1,10 +1,12 @@
+use core::panic;
+
 // Instead of tree structure, we are going to use a vector of nodes which are fixed size.
 // Each holds an optional parent index
 // Each holds a vector of n keys
 // Each holds a vector of either n+1 child indicies or n values
-const FANOUT: usize = 3;
+const FANOUT: usize = 5;
 const SPLIT_AFTER: usize = FANOUT;
-const MERGE_AFTER: usize = FANOUT - 1;
+const MERGE: usize = FANOUT / 2;
 
 fn borrow_mut_nodes<'a>(
     v: &'a mut Vec<ArrayNode>,
@@ -35,14 +37,14 @@ fn borrow_mut_nodes<'a>(
 
 #[derive(Debug)]
 enum NodeValue {
-    Internal(Vec<Option<usize>>),
-    Leaf(Vec<Option<String>>),
+    Internal(Vec<usize>),
+    Leaf(Vec<String>),
 }
 
 #[derive(Debug)]
 struct ArrayNode {
     parent: Option<usize>,
-    keys: Vec<Option<String>>,
+    keys: Vec<String>,
     values: NodeValue,
 }
 
@@ -55,23 +57,23 @@ impl ArrayNode {
         }
     }
 
-    fn display(&self) {
+    fn display(&self, indent: &str) {
         let parent_string = match self.parent {
             Some(index) => index.to_string(),
             None => "Root".to_string(),
         };
 
         let type_string = match self.values {
-            NodeValue::Internal(_) => format!("Internal({})", parent_string),
-            NodeValue::Leaf(_) => format!("Leaf({})", parent_string),
+            NodeValue::Internal(_) => format!("{}Internal({})", indent, parent_string),
+            NodeValue::Leaf(_) => format!("{}Leaf({})", indent, parent_string),
         };
-        println!("Node: {}", type_string);
-        println!("Keys: {:?}", self.keys);
+        println!("{}Node: {}", indent, type_string);
+        println!("{}Keys: {:?}", indent, self.keys);
         match self.values {
             NodeValue::Internal(ref children) => {
-                println!("Children: {:?}", children);
+                println!("{}Children: {:?}", indent, children);
             }
-            NodeValue::Leaf(ref values) => println!("Values: {:?}", values),
+            NodeValue::Leaf(ref values) => println!("{}Values: {:?}", indent, values),
         }
     }
 }
@@ -91,8 +93,29 @@ impl BPlusTree {
     }
 
     fn display(&self) {
-        for node in self.nodes.iter() {
-            node.display();
+        let mut stack = vec![self.root_index];
+        let mut indent = "".to_string();
+
+        loop {
+            let mut next_stack = Vec::new();
+            for node_index in stack.iter() {
+                self.nodes[*node_index].display(&indent);
+                match self.nodes[*node_index].values {
+                    NodeValue::Internal(ref pointers) => {
+                        for pointer in pointers.iter() {
+                            next_stack.push(*pointer);
+                        }
+                    }
+                    NodeValue::Leaf(_) => (),
+                }
+            }
+
+            if next_stack.len() == 0 {
+                break;
+            }
+
+            stack = next_stack;
+            indent += "  ";
         }
     }
 
@@ -125,9 +148,7 @@ impl BPlusTree {
             NodeValue::Internal(_) => FANOUT / 2,
             NodeValue::Leaf(_) => (FANOUT + 1) / 2,
         };
-        let promotion_key: String = mut_nodes_ref[node_index].keys[promotion_index]
-            .clone()
-            .unwrap();
+        let promotion_key: String = mut_nodes_ref[node_index].keys[promotion_index].clone();
 
         println!("Promotion index: {}", promotion_index);
         println!("Promotion key: {}", promotion_key);
@@ -167,18 +188,15 @@ impl BPlusTree {
                 let parent_node = &mut mut_nodes_ref[parent.unwrap()];
                 let mut key_position = 0;
                 for key in parent_node.keys.iter() {
-                    if key.is_none() {
-                        break;
-                    }
-                    if key.clone().unwrap() > promotion_key {
+                    if key.clone() > promotion_key {
                         break;
                     }
                     key_position += 1;
                 }
-                parent_node.keys.insert(key_position, Some(promotion_key));
+                parent_node.keys.insert(key_position, promotion_key);
                 match parent_node.values {
                     NodeValue::Internal(ref mut pointers) => {
-                        pointers.insert(key_position + 1, Some(nodes_length));
+                        pointers.insert(key_position + 1, nodes_length);
                     }
                     NodeValue::Leaf(_) => panic!("Leaf node is parent"),
                 }
@@ -188,8 +206,8 @@ impl BPlusTree {
                 // create new root node
                 let new_root = ArrayNode {
                     parent: None,
-                    keys: vec![Some(promotion_key)],
-                    values: NodeValue::Internal(vec![Some(node_index), Some(self.nodes.len() - 1)]),
+                    keys: vec![promotion_key],
+                    values: NodeValue::Internal(vec![node_index, self.nodes.len() - 1]),
                 };
                 self.nodes.push(new_root);
                 self.root_index = self.nodes.len() - 1;
@@ -197,17 +215,65 @@ impl BPlusTree {
         };
     }
 
+    fn remove_node(&mut self, index: usize) {
+        println!("Removing node {}", index);
+        self.nodes.remove(index);
+
+        if self.root_index == index {
+            panic!("Removed root node");
+        }
+        if self.root_index > index {
+            self.root_index -= 1;
+        }
+
+        // update parent indicies
+        for node in self.nodes.iter_mut() {
+            match node.values {
+                NodeValue::Internal(ref mut pointers) => {
+                    for pointer in pointers.iter_mut() {
+                        if *pointer == index {
+                            panic!("Removed referenced node");
+                        }
+                        if *pointer > index {
+                            *pointer -= 1;
+                        }
+                    }
+                }
+                NodeValue::Leaf(_) => (),
+            }
+            match node.parent {
+                Some(parent_index) => {
+                    if parent_index == index {
+                        panic!("Removed referenced node");
+                    }
+                    if parent_index > index {
+                        node.parent = Some(parent_index - 1);
+                    }
+                }
+                None => (),
+            }
+        }
+    }
+
     fn check_merge(&mut self, index: usize) {
         let check_node = &self.nodes[index];
+        println!("Checking node {} for merge", index);
 
         match check_node.values {
             NodeValue::Internal(ref pointers) => {
                 let mut first_pos = 0;
                 let mut second_pos = 1;
                 while second_pos < pointers.len() {
-                    if self.nodes[pointers[first_pos].unwrap()].keys.len()
-                        + self.nodes[pointers[second_pos].unwrap()].keys.len()
-                        < MERGE_AFTER
+                    println!(
+                        "Checking node {} and node {} for merge: size: {} size: {}",
+                        pointers[first_pos],
+                        pointers[second_pos],
+                        self.nodes[pointers[first_pos]].keys.len(),
+                        self.nodes[pointers[second_pos]].keys.len()
+                    );
+                    if self.nodes[pointers[first_pos]].keys.len()
+                        + self.nodes[pointers[second_pos]].keys.len()
+                        <= MERGE
                     {
                         self.merge(first_pos, second_pos);
                         return;
@@ -224,8 +290,7 @@ impl BPlusTree {
     }
 
     fn merge(&mut self, left_node_index: usize, right_node_index: usize) {
-        if self.nodes[left_node_index].keys.len() + self.nodes[right_node_index].keys.len()
-            >= MERGE_AFTER
+        if self.nodes[left_node_index].keys.len() + self.nodes[right_node_index].keys.len() > MERGE
         {
             println!(
                 "Node {} has {} keys and node {} has {} keys, not splitting",
@@ -249,18 +314,19 @@ impl BPlusTree {
             (left_node_index, right_node_index, parent_index),
         );
 
-        let parent_remove_separator = left_node.keys[left_node.keys.len() - 1].clone().unwrap();
+        let parent_remove_separator = left_node.keys[left_node.keys.len() - 1].clone();
+
+        println!("Separator key: {}", parent_remove_separator);
 
         let mut key_position = 0;
         for node_key in parent_node.keys.iter() {
-            if node_key.is_none() {
-                break;
-            }
-            if node_key.clone().unwrap() >= parent_remove_separator {
+            if node_key.clone() >= parent_remove_separator {
                 break;
             }
             key_position += 1;
         }
+        println!("Key position: {}", key_position);
+
         parent_node.keys.remove(key_position);
         match parent_node.values {
             NodeValue::Internal(ref mut pointers) => {
@@ -272,21 +338,29 @@ impl BPlusTree {
         }
 
         // move keys and values from left node to right node
-        left_node.keys.append(&mut right_node.keys);
-        match left_node.values {
-            NodeValue::Internal(ref mut pointers) => match right_node.values {
-                NodeValue::Internal(ref mut right_pointers) => {
-                    pointers.append(right_pointers);
+        right_node.keys.append(&mut left_node.keys);
+        match right_node.values {
+            NodeValue::Internal(ref mut pointers) => match left_node.values {
+                NodeValue::Internal(ref mut left_pointers) => {
+                    pointers.append(left_pointers);
                 }
                 NodeValue::Leaf(_) => panic!("Sibling nodes have different types"),
             },
-            NodeValue::Leaf(ref mut values) => match right_node.values {
-                NodeValue::Leaf(ref mut right_values) => {
-                    values.append(right_values);
+            NodeValue::Leaf(ref mut values) => match left_node.values {
+                NodeValue::Leaf(ref mut left_values) => {
+                    values.append(left_values);
                 }
                 NodeValue::Internal(_) => panic!("Sibling nodes have different types"),
             },
         }
+
+        // propagate merge upwards
+        match parent_node.parent {
+            Some(index) => self.check_merge(index),
+            None => {}
+        }
+
+        self.remove_node(left_node_index);
     }
 
     fn get_node_for_key(&mut self, key: String) -> usize {
@@ -299,11 +373,6 @@ impl BPlusTree {
                     // Find the index of the child to descend into
                     let mut index = 0;
                     for child in target_node.keys.iter() {
-                        let child = match child {
-                            Some(key) => key,
-                            None => break,
-                        };
-
                         if *child == key {
                             break;
                         }
@@ -312,10 +381,7 @@ impl BPlusTree {
                         }
                         index += 1;
                     }
-                    let next_index = match children[index] {
-                        Some(index) => index,
-                        None => panic!("Internal node has no child at index {}", index),
-                    };
+                    let next_index = children[index];
 
                     target_node = &mut self.nodes[next_index];
                     target_node_index = next_index;
@@ -342,11 +408,6 @@ impl BPlusTree {
                 let mut found = false;
 
                 for child in target_node.keys.iter() {
-                    let child = match child {
-                        Some(key) => key,
-                        None => break,
-                    };
-
                     if *child == key {
                         found = true;
                         break;
@@ -360,11 +421,11 @@ impl BPlusTree {
                 println!("Index: {}", index);
 
                 if found {
-                    target_node.keys[index] = Some(key);
-                    children[index] = Some(value);
+                    target_node.keys[index] = key;
+                    children[index] = value;
                 } else {
-                    target_node.keys.insert(index, Some(key));
-                    children.insert(index, Some(value));
+                    target_node.keys.insert(index, key);
+                    children.insert(index, value);
                     if target_node.keys.len() > SPLIT_AFTER {
                         self.split(target_node_index)
                     }
@@ -388,11 +449,6 @@ impl BPlusTree {
                 let mut index = 0;
 
                 for child in target_node.keys.iter() {
-                    let child = match child {
-                        Some(key) => key,
-                        None => break,
-                    };
-
                     if *child == key {
                         target_node.keys.remove(index);
                         children.remove(index);
@@ -427,5 +483,10 @@ fn main() {
     tree.insert("i".to_string(), "i".to_string());
     tree.insert("j".to_string(), "j".to_string());
     tree.delete("a".to_string());
+    tree.delete("b".to_string());
+    tree.delete("d".to_string());
+    tree.delete("e".to_string());
+    tree.display();
+    tree.delete("f".to_string());
     tree.display();
 }
