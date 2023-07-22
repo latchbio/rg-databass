@@ -134,9 +134,6 @@ impl BPlusTree {
     }
 
     fn split(&mut self, node_index: usize) {
-        println!("Splitting node {}", node_index);
-        println!("Original node: {:?}", self.nodes[node_index]);
-
         let nodes_length = self.nodes.len();
         let mut_nodes_ref = &mut self.nodes;
         let parent = mut_nodes_ref[node_index].parent;
@@ -154,9 +151,6 @@ impl BPlusTree {
             NodeValue::Leaf(_) => (FANOUT + 1) / 2,
         };
         let promotion_key: String = mut_nodes_ref[node_index].keys[promotion_index].clone();
-
-        println!("Promotion index: {}", promotion_index);
-        println!("Promotion key: {}", promotion_key);
 
         let mut right_keys = mut_nodes_ref[node_index].keys.split_off(promotion_index);
         match mut_nodes_ref[node_index].values {
@@ -189,9 +183,6 @@ impl BPlusTree {
 
         // update parent of original node
         mut_nodes_ref[node_index].parent = Some(next_parent_index);
-
-        println!("Original node: {:?}", mut_nodes_ref[node_index]);
-        println!("Sibling node: {:?}", mut_nodes_ref[nodes_length]);
 
         //update parent node
         match parent {
@@ -237,14 +228,17 @@ impl BPlusTree {
     }
 
     fn remove_node(&mut self, index: usize) {
-        println!("Removing node {}", index);
-        self.nodes.remove(index);
-
+        // uses swap_remove so that we do not need to reorder all elements
         if self.root_index == index {
             panic!("Removed root node");
         }
-        if self.root_index > index {
-            self.root_index -= 1;
+
+        let swap_origin = self.nodes.len() - 1;
+
+        self.nodes.swap_remove(index);
+
+        if self.root_index == swap_origin {
+            self.root_index = index;
         }
 
         // update parent indicies
@@ -255,8 +249,9 @@ impl BPlusTree {
                         if *pointer == index {
                             panic!("Removed referenced node");
                         }
-                        if *pointer > index {
-                            *pointer -= 1;
+
+                        if *pointer == swap_origin {
+                            *pointer = index;
                         }
                     }
                 }
@@ -267,8 +262,8 @@ impl BPlusTree {
                     if parent_index == index {
                         panic!("Removed referenced node");
                     }
-                    if parent_index > index {
-                        node.parent = Some(parent_index - 1);
+                    if parent_index == swap_origin {
+                        node.parent = Some(index);
                     }
                 }
                 None => (),
@@ -278,7 +273,6 @@ impl BPlusTree {
 
     fn check_merge(&mut self, index: usize) {
         let check_node = &self.nodes[index];
-        println!("Checking node {} for merge", index);
 
         match check_node.values {
             NodeValue::Internal(ref pointers) => {
@@ -304,11 +298,6 @@ impl BPlusTree {
     }
 
     fn merge(&mut self, left_node_index: usize, right_node_index: usize) {
-        println!(
-            "Merging node {} and node {}",
-            left_node_index, right_node_index
-        );
-
         let parent_index = self.nodes[left_node_index].parent.clone().unwrap();
 
         let (left_node, right_node, parent_node) = borrow_mut_nodes(
@@ -318,8 +307,6 @@ impl BPlusTree {
 
         let parent_remove_separator = left_node.keys[left_node.keys.len() - 1].clone();
 
-        println!("Separator key: {}", parent_remove_separator);
-
         let mut key_position = 0;
         for node_key in parent_node.keys.iter() {
             if node_key.clone() >= parent_remove_separator {
@@ -327,7 +314,6 @@ impl BPlusTree {
             }
             key_position += 1;
         }
-        println!("Key position: {}", key_position);
 
         parent_node.keys.remove(key_position);
         match parent_node.values {
@@ -404,8 +390,6 @@ impl BPlusTree {
             NodeValue::Internal(_) => panic!("Search yielded internal node"),
             NodeValue::Leaf(ref mut children) => {
                 // Insert into the leaf node
-                println!("Inserting key {} and value {}", key, value);
-
                 let mut index = 0;
                 let mut found = false;
 
@@ -419,8 +403,6 @@ impl BPlusTree {
                     }
                     index += 1;
                 }
-
-                println!("Index: {}", index);
 
                 if found {
                     target_node.keys[index] = key;
@@ -446,8 +428,6 @@ impl BPlusTree {
             NodeValue::Internal(_) => panic!("Search yielded internal node"),
             NodeValue::Leaf(ref mut children) => {
                 // Insert into the leaf node
-                println!("Deleting key {}", key);
-
                 let mut index = 0;
 
                 for child in target_node.keys.iter() {
@@ -457,7 +437,6 @@ impl BPlusTree {
                         break;
                     }
                     if *child > key {
-                        println!("Key not found");
                         break;
                     }
                     index += 1;
