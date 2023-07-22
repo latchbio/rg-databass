@@ -1,5 +1,5 @@
 # Index
 
-- [Further Reading Links from the Book](./book_links.md)
+- [Links from the Book](./book_links.md)
 - [Futher Reading](./reading.md)
 - [Homework](./homework.md)
