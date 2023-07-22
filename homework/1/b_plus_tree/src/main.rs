@@ -172,10 +172,16 @@ impl BPlusTree {
             keys: right_keys,
             values: match mut_nodes_ref[node_index].values {
                 NodeValue::Internal(ref mut pointers) => {
-                    NodeValue::Internal(pointers.split_off(promotion_index + 1))
+                    let mut sibling_pointers = Vec::with_capacity(FANOUT + 1);
+                    sibling_pointers.extend(pointers.split_off(promotion_index + 1));
+
+                    NodeValue::Internal(sibling_pointers)
                 }
                 NodeValue::Leaf(ref mut values) => {
-                    NodeValue::Leaf(values.split_off(promotion_index))
+                    let mut sibling_values = Vec::with_capacity(FANOUT);
+                    sibling_values.extend(values.split_off(promotion_index));
+
+                    NodeValue::Leaf(sibling_values)
                 }
             },
         };
