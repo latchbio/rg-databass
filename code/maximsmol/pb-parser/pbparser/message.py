@@ -1,10 +1,8 @@
-import builtins
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import dataclasses
 from enum import Enum
-from collections.abc import Generator, Iterable, Sized
-from typing import ClassVar, Protocol, Self, Type, Union, get_origin
-import typing
+from collections.abc import Generator
+from typing import ClassVar, Protocol
 
 from .varint import varint_bytes, varint_parse
 from .common import ParserMessage, Read
