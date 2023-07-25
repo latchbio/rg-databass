@@ -1,0 +1,9 @@
+@coverage:
+  coverage run --branch -m pytest
+  coverage html
+
+@protoc:
+  protoc \
+    test.proto \
+    --python_out test_proto \
+    --pyi_out test_proto
