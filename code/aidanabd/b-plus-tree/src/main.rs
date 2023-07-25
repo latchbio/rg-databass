@@ -2,6 +2,7 @@
 // Each holds an optional parent index
 // Each holds a vector of n keys
 // Each holds a vector of either n+1 child indicies or n values
+
 const FANOUT: usize = 5;
 const SPLIT_AFTER: usize = FANOUT;
 const MERGE: usize = FANOUT / 2;

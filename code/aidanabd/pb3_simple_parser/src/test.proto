@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package test;
+
+// This is Struct but using int64 instead of double for numbers
+message Data {
+  message fields_Entry {
+    optional string key = 1;
+    optional Datum value = 2;
+  }
+  repeated fields_Entry fields = 1;
+}
+
+message Datum {
+  oneof kind {
+    int64 number_value = 2;
+    string string_value = 3;
+    Data struct_value = 5;
+  }
+}
