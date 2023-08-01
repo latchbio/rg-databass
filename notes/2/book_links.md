@@ -1,4 +1,6 @@
-# Further Reading Links from the Book
+# Book Links
+
+## Further Reading
 
 - [Robert Sedgewick and Kevin Wayne. 2011. Binary Search Trees. _Algorithms_ (4th ed.). Addison-Wesley Professional.](https://algs4.cs.princeton.edu/32bst/)
   - [Hardcover (Amazon)](https://www.amazon.com/Algorithms-4th-Robert-Sedgewick/dp/032157351X/)

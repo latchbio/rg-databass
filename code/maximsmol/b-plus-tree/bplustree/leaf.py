@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import total_ordering
 from typing import Generic, Self, TypeVar
 
-from util import shift_left, shift_right
+from .util import shift_left, shift_right
 
 K = TypeVar("K")
 V = TypeVar("V")

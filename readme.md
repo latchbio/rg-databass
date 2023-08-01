@@ -8,6 +8,8 @@ Loosely following [_Database Internals_ by Alex Petrov (O'Reilly). ISBN 978-1-49
 1. [Day 1](./notes/1/index.md)
 1. [Day 2](./notes/2/index.md)
 1. [Day 3](./notes/3/index.md)
+1. [Day 4](./notes/4/index.md)
+1. [Day 5](./notes/5/index.md)
 
 ## Copying/License
 

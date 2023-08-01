@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from functools import total_ordering
 from typing import Generic, Self, TypeVar
 
-from util import shift_right
-from leaf import Entry, LeafNode, LeafNodeIterator, NoEntry
+from .util import shift_right
+from .leaf import Entry, LeafNode, LeafNodeIterator, NoEntry
 
 K = TypeVar("K")
 V = TypeVar("V")

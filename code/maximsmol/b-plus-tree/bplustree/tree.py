@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Generic, Iterator, TypeVar
 
-from internal import InternalNode, Key
-from leaf import LeafNode, Entry
+from .internal import InternalNode, Key
+from .leaf import LeafNode, Entry
 
 K = TypeVar("K")
 V = TypeVar("V")
